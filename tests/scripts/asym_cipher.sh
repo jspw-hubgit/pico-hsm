@@ -7,7 +7,7 @@ test $? -eq 0 || exit $?
 rsa_encrypt_decrypt() {
     openssl pkeyutl -encrypt -pubin -inkey 1.pub $2 -in $1 -out data.crypt
     test $? -eq 0 && echo -n "." || exit $?
-    TDATA=$(tr -d '\0' < <(pkcs11-tool --id 1 --pin 648219 --decrypt $3 -i data.crypt 2>/dev/null))
+    TDATA=$((tr -d '\0' < <(pkcs11-tool --id 1 --pin 648219 --decrypt $3 -i data.crypt 2>/dev/null)) | sed 2d)
     test $? -eq 0 && echo -n "." || exit $?
     if [[ ${TEST_STRING} != "$TDATA" ]]; then
         exit 1
@@ -36,7 +36,7 @@ rsa_encrypt_decrypt data_pad "-pkeyopt rsa_padding_mode:none" "--mechanism RSA-X
 test $? -eq 0 && echo -e ".\t${OK}" || exit $?
 
 echo -n "  Test RSA-PKCS-OAEP ciphering..."
-rsa_encrypt_decrypt data "-pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256" "--mechanism RSA-PKCS-OAEP"
+rsa_encrypt_decrypt data "-pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256" "--mechanism RSA-PKCS-OAEP --hash-algorithm=sha256 --mgf=MGF1-SHA256"
 test $? -eq 0 && echo -e ".\t${OK}" || exit $?
 
 rm -rf data* 1.*
